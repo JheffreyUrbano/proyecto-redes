@@ -1,0 +1,7 @@
+# Vagrant - nunca subir esto ya que es muy pesado
+.vagrant/
+*.box
+
+# Archivos de sistema Windows
+Thumbs.db
+desktop.ini
