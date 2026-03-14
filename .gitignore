@@ -1,7 +1,27 @@
-# Vagrant - nunca subir esto ya que es muy pesado
-.vagrant/
-*.box
+# Python / Django
+__pycache__/
+*.py[cod]
+*.log
+*.sqlite3
+env/
+venv/
+*/venv/
+*.pot
+*.pyc
 
-# Archivos de sistema Windows
+# Node/Tailwind
+node_modules/
+*.log
+
+# Django staticfiles compilados
+staticfiles/
+*/staticfiles/
+
+# VirtualBox shared folders artefactos
+*.vbox-prev
+.DS_Store
 Thumbs.db
-desktop.ini
+
+# Archivos de entorno
+*.env
+.env*
