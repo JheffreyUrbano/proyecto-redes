@@ -144,11 +144,11 @@ http://papadasoftware.com/api/
 ```
 
 #### Logs
-  -GET /api/logs/?requino=ID
-  -POST /api/logs/
+    - GET /api/logs/?requino=ID
+    - POST /api/logs/
 
 #### Correos
-  -POST /api/correos/enviar/
+    -POST /api/correos/enviar/
 
 ### Flujo del sistema
     1. Usuario accede a papadasoftware.com
