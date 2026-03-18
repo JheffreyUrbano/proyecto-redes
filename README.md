@@ -148,7 +148,7 @@ http://papadasoftware.com/api/
 - POST /api/logs/
 
 #### Correos
--POST /api/correos/enviar/
+- POST /api/correos/enviar/
 
 ### Flujo del sistema
     1. Usuario accede a papadasoftware.com
