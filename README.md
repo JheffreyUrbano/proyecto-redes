@@ -12,6 +12,9 @@ Base URL:
 
 http://papadasoftware.com/api/
 
+Para API Docs:
+http://192.168.100.3:8000/api/
+
 ---
 
 ## 1. Requisiciones
