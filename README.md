@@ -1,159 +1,184 @@
-# Proyecto Redes
+# Sistema de Gestión de Requisiciones – Proyecto Redes
+
+Sistema distribuido basado en microservicios para la gestión de requisiciones, desarrollado con Django REST Framework, PostgreSQL y frontend servido mediante Nginx.
+
+
+## Descripción
+
+Este proyecto implementa una arquitectura cliente-servidor distribuida en dos máquinas virtuales:
+
+- servidorUbuntu1 → Frontend + Nginx + DNS (Bind9)
+- servidorUbuntu2 → Backend (Django REST) + PostgreSQL
+
+
+
+
+## Arquitectura del Sistema
+
+![Arquitectura](docs/img/diagrama-proyecto.png)
+
+---
+
+## Flujo del Sistema
+
+### Flujo del Solicitante
+
+![Flujo Solicitante](docs/img/flujo_solicitante.png)
+
+---
+
+### Flujo del Revisor
+
+![Flujo Revisor](docs/img/flujo_revisor.png)
+
+---
+
+### Flujo del Autorizador
+
+![Flujo Autorizador](docs/img/flujo_autorizador.png)
+
+---
+
+### Ciclo de Vida de la Requisición
+
+![Ciclo Vida](docs/img/ciclo_vida.png)
+
+---
+
+## Tecnologías
+
+### Frontend (servidorUbuntu1)
+- HTML5
+- CSS3
+- JavaScript (Fetch API)
+- Nginx
+- Bind9
+
+### Backend (servidorUbuntu2)
+- Python 3.12
+- Django REST Framework
+- PostgreSQL
+- SMTP Gmail
+- python-dotenv
+
+---
 
 ## Cómo levantar el ambiente
-1. Instalar [VirtualBox](https://virtualbox.org) y [ISO Ubuntu 24.04 LTS](https://ubuntu.com/download/desktop)
-2. Clonar este repo: `git clone https://github.com/JheffreyUrbano/proyecto-redes.git`
-3. Ir a la carpeta: `cd proyecto-rei-2026`
 
+### 1. Requisitos
 
-# Endpoints API – Sistema de Requisiciones
+- VirtualBox
+- Ubuntu 24.04
+- Python 3.12
+- PostgreSQL
+- Nginx
 
-Base URL:
+---
 
+### 2. Clonar repositorio
+
+```bash
+git clone https://github.com/JheffreyUrbano/proyecto-redes.git
+cd proyecto-redes
+```
+
+### 3. Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 4. Variables de Entorno
+```bash
+EMAIL_HOST_USER=tu_correo@gmail.com
+EMAIL_HOST_PASSWORD=tu_password
+```
+
+### 5. Ejecutar Backend
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+
+### 6. Configurar Nginx
+```bash
+server {
+    listen 80;
+    server_name papadasoftware.com;
+
+    root /home/urbano/servidorUbuntu1/frontend/app;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://192.168.100.3:8000;
+    }
+}
+```
+
+### Endpoints API
 http://papadasoftware.com/api/
 
-Para API Docs:
-http://192.168.100.3:8000/api/
 
----
+#### Requisiciones
+  - GET /api/requisiciones/
+  - POST /api/requisiciones/
+  - DELETE /api/requisiciones/{requino}/
 
-## 1. Requisiciones
 
-### Obtener todas las requisiciones
-GET /api/requisiciones/
+#### Detalles
+  - GET /api/detalles/
+  - GET /api/detalles/?requino=ID
+  - DELETE /api/detalles/eliminar/
 
-### Obtener una requisición específica
-GET /api/requisiciones/{requino}/
-
-### Crear una nueva requisición
-POST /api/requisiciones/
-
-### Actualizar requisición (completa)
-PUT /api/requisiciones/{requino}/
-
-### Actualizar requisición (parcial)
-PATCH /api/requisiciones/{requino}/
-
-### Eliminar requisición
-DELETE /api/requisiciones/{requino}/
-
----
-
-## 2. Detalles de Requisición
-
-### Obtener todos los detalles
-GET /api/detalles/
-
-### Obtener detalles por requisición
-GET /api/detalles/?requino={requino}
-
-### Crear detalle (si aplica desde API directa)
-POST /api/detalles/
-
-### Eliminar detalle (PK compuesta)
-DELETE /api/detalles/eliminar/
-
-Body:
+```json
 {
   "item": 1,
   "codproducto": "MP-MAD-001",
   "requino": "000001"
 }
+```
 
----
+#### Logs
+  -GET /api/logs/?requino=ID
+  -POST /api/logs/
 
-## 3. Logs de Auditoría (log_requisicion)
+#### Correos
+  -POST /api/correos/enviar/
 
-### Obtener logs por requisición
-GET /api/logs/?requino={requino}
+### Flujo del sistema
+    1. Usuario accede a papadasoftware.com
+    2. DNS resuelve a 192.168.100.2
+    3. Nginx sirve frontend
+    4. Frontend consume API
+    5. Django procesa lógica
+    6. PostgreSQL guarda datos
+    7. SMTP envía correos
 
-### Crear log
-POST /api/logs/
+### Seguridad
+- Backend no expuesto directamente
+- Uso de variables de entorno
+- Proxy inverso con Nginx
+- Logs inmutables
 
-Body:
-{
-  "requisicion": "000001",
-  "accion": "CREACION",
-  "descripcion": "Se creó la requisición"
-}
+### Estado del proyecto
+- API funcional
+- Frontend operativo
+- Correos integrados
+- Auditoría implementada
+- Arquitectura distribuida
 
----
 
-## 4. Productos
+## Authors
 
-### Obtener productos
-GET /api/productos/
+- [@JheffreyUrbano](https://www.github.com/JheffreyUrbano)
+- [@AlexanderMosquera](https://github.com/alexelgordo72)
 
-### Obtener producto específico
-GET /api/productos/{codproducto}/
+## License
 
-### Crear producto
-POST /api/productos/
+[GNU AGPL v3 License](https://github.com/JheffreyUrbano/proyecto-redes/blob/main/LICENSE)
 
-### Actualizar producto
-PUT /api/productos/{codproducto}/
-
-### Eliminar producto
-DELETE /api/productos/{codproducto}/
-
----
-
-## 5. Usuarios
-
-### Login de usuario
-POST /api/usuarios/login/
-
-Body:
-{
-  "usuario": "admin",
-  "password": "1234"
-}
-
----
-
-## 6. Notificaciones (Correos)
-
-### Enviar correo
-POST /api/notificaciones/enviar/
-
-Body:
-{
-  "destinatario": "correo@gmail.com",
-  "asunto": "Asunto",
-  "mensaje": "Contenido del mensaje"
-}
-
----
-
-## 7. Endpoint de prueba (solo desarrollo)
-
-### Eliminar detalle desde navegador (NO PRODUCCIÓN)
-GET /api/detalles/eliminar-test/?item={item}&codproducto={codproducto}&requino={requino}
-
-Ejemplo:
-GET /api/detalles/eliminar-test/?item=1&codproducto=MP-MAD-001&requino=000001
-
----
-
-## Notas importantes
-
-- Todos los endpoints están bajo el prefijo `/api/`
-- El backend se encuentra en 192.168.100.3:8000 (oculto detrás de Nginx)
-- El acceso público se realiza a través de:
-  http://papadasoftware.com
-
----
-
-## Convenciones utilizadas
-
-- `requino`: identificador de requisición
-- `codproducto`: identificador del producto
-- `item`: número de ítem dentro de la requisición
-
----
-
-## Seguridad
-
-- No se permite DELETE en logs de auditoría
-- El backend no está expuesto directamente
-- Nginx actúa como proxy inverso
