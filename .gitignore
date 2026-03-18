@@ -1,87 +1,27 @@
-# =========================
-# PYTHON
-# =========================
+# Python / Django
 __pycache__/
 *.py[cod]
-*$py.class
-
-# Virtual environment
-venv/
-env/
-ENV/
-
-# Django
 *.log
+*.sqlite3
+env/
+venv/
+*/venv/
 *.pot
 *.pyc
-db.sqlite3
-media/
-staticfiles/
 
-# =========================
-# ENV VARIABLES
-# =========================
-.env
-.env.*
-
-# =========================
-# VSCODE / IDE
-# =========================
-.vscode/
-.idea/
-
-# =========================
-# NODE (si frontend usa algo luego)
-# =========================
+# Node/Tailwind
 node_modules/
-npm-debug.log*
+*.log
 
-# =========================
-# OS FILES
-# =========================
+# Django staticfiles compilados
+staticfiles/
+*/staticfiles/
+
+# VirtualBox shared folders artefactos
+*.vbox-prev
 .DS_Store
 Thumbs.db
 
-# =========================
-# POSTGRES / DB
-# =========================
-*.sql
-*.dump
-
-# =========================
-# DJANGO MIGRATIONS (opcional)
-# =========================
-# */migrations/*
-# !*/migrations/__init__.py
-
-# =========================
-# CACHE
-# =========================
-.cache/
-
-# =========================
-# TEMP FILES
-# =========================
-*.tmp
-*.swp
-
-# =========================
-# DOCKER (por si acaso)
-# =========================
-*.pid
-
-# =========================
-# SHARED FOLDER VM
-# =========================
-/media/sf_*/
-
-# =========================
-# LOGS
-# =========================
-*.log
-
-# =========================
-# TESTS
-# =========================
-.coverage
-htmlcov/
+# Archivos de entorno
+*.env
+.env*
