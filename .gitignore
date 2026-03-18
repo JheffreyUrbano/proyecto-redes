@@ -1,7 +1,87 @@
-# Vagrant - nunca subir esto ya que es muy pesado
-.vagrant/
-*.box
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Archivos de sistema Windows
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# =========================
+# ENV VARIABLES
+# =========================
+.env
+.env.*
+
+# =========================
+# VSCODE / IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# NODE (si frontend usa algo luego)
+# =========================
+node_modules/
+npm-debug.log*
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
 Thumbs.db
-desktop.ini
+
+# =========================
+# POSTGRES / DB
+# =========================
+*.sql
+*.dump
+
+# =========================
+# DJANGO MIGRATIONS (opcional)
+# =========================
+# */migrations/*
+# !*/migrations/__init__.py
+
+# =========================
+# CACHE
+# =========================
+.cache/
+
+# =========================
+# TEMP FILES
+# =========================
+*.tmp
+*.swp
+
+# =========================
+# DOCKER (por si acaso)
+# =========================
+*.pid
+
+# =========================
+# SHARED FOLDER VM
+# =========================
+/media/sf_*/
+
+# =========================
+# LOGS
+# =========================
+*.log
+
+# =========================
+# TESTS
+# =========================
+.coverage
+htmlcov/

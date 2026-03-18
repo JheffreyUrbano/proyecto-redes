@@ -1,0 +1,282 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sistema de Gestión | Inicio</title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+
+    <!-- Custom styling plus plugins -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+
+    <style>
+        /* Estilos personalizados */
+        .content-blank {
+            background: #fff;
+            border-radius: 5px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #73879C;
+        }
+
+        .blank-message {
+            text-align: center;
+        }
+
+            .blank-message i {
+                font-size: 5rem;
+                color: #1ABB9C;
+                margin-bottom: 20px;
+            }
+
+        .user-welcome {
+            font-weight: bold;
+            color: #1ABB9C;
+        }
+    </style>
+</head>
+
+<body class="nav-md">
+    <div class="container body">
+        <div class="main_container">
+            <!-- MENÚ LATERAL IZQUIERDO -->
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <!-- Logo / Título del Sistema -->
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title">
+                            <i class="fa fa-database"></i>
+                            <span>Sistema Gestión</span>
+                        </a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <!-- Perfil de usuario (se actualizará vía JS) -->
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="images/logo.png" alt="..." class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Bienvenido,</span>
+                            <h2 id="nombreUsuario">Cargando...</h2>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <!-- MENÚ PRINCIPAL -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>Menú Principal</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a href="index.html">
+                                        <i class="fa fa-home"></i> Inicio
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="requisiciones.html">
+                                        <i class="fa fa-shopping-cart"></i> Requisiciones
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="fa fa-database"></i> Respaldos
+                                        <span class="fa fa-chevron-down"></span>
+                                    </a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="#">Ejecutar Respaldo</a></li>
+                                        <li><a href="#">Historial de Respaldos</a></li>
+                                        <li><a href="#">Configurar Respaldos</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="fa fa-bar-chart-o"></i> Reportes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="fa fa-cog"></i> Configuración
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <i class="fa fa-users"></i> Usuarios
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- /FIN MENÚ PRINCIPAL -->
+                    <!-- Botones del pie del menú -->
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" data-placement="top" title="Configuración">
+                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Pantalla completa">
+                            <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Bloquear">
+                            <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                        </a>
+                        <a href="javascript:void(0);" onclick="cerrarSesion()" data-toggle="tooltip" data-placement="top" title="Salir">
+                            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- /FIN MENÚ LATERAL IZQUIERDO -->
+            <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <div class="nav toggle">
+                        <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                    </div>
+                    <nav class="nav navbar-nav">
+                        <ul class="navbar-right">
+                            <!-- Menú de usuario -->
+                            <li class="nav-item dropdown open" style="padding-left: 15px;">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="images/img.jpg" alt=""><span id="userNameDisplay">Administrador</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-usermenu pull-right">
+                                    <a class="dropdown-item" href="#"> Perfil</a>
+                                    <a class="dropdown-item" href="#"> Configuración</a>
+                                    <a class="dropdown-item" href="javascript:cerrarSesion()"><i class="fa fa-sign-out pull-right"></i> Cerrar Sesión</a>
+                                </div>
+                            </li>
+                            <!-- Notificaciones / Mensajes -->
+                            <li class="nav-item dropdown open">
+                                <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="badge bg-green">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /FIN BARRA SUPERIOR -->
+            <!-- CONTENIDO PRINCIPAL - COMPLETAMENTE VACÍO -->
+            <div class="right_col" role="main">
+                <div class="page-title">
+                    <div class="title_left">
+                        <h3>Inicio <small>Bienvenido</small></h3>
+                    </div>
+                    <div class="title_right">
+                        <div class="col-md-5 col-sm-5 form-group pull-right top_search">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Buscar...">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-secondary" type="button">Ir</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="clearfix"></div>
+
+                <!-- ÁREA TOTALMENTE EN BLANCO -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="content-blank">
+                            <div class="blank-message">
+                                <i class="fa fa-database"></i>
+                                <h4>Área de trabajo</h4>
+                                <p class="text-muted">Bienvenido <span id="welcomeUserName" class="user-welcome"></span>, aquí irá el contenido del sistema.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- FIN ÁREA EN BLANCO -->
+            </div>
+            <!-- /FIN CONTENIDO PRINCIPAL -->
+            <!-- FOOTER (PIE DE PÁGINA) -->
+            <footer>
+                <div class="pull-right">
+                    Sistema de Gestión v1.0
+                </div>
+                <div class="clearfix"></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="../build/js/custom.min.js"></script>
+
+    <script>
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            // Limpiar todo el localStorage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Redirigir al login
+            window.location.href = 'login.html';
+        }
+
+        // Al cargar la página
+        $(document).ready(function () {
+            // Verificar si hay usuario logueado
+            const usuario = localStorage.getItem('usuario');
+            const username = localStorage.getItem('username');
+
+            console.log('Usuario en localStorage:', usuario);
+            console.log('Username:', username);
+
+            if (!usuario && !username) {
+                // Si no hay usuario, redirigir al login
+                window.location.href = 'login.html';
+            } else {
+                // Intentar obtener el nombre del usuario
+                let nombreMostrar = 'Usuario';
+
+                try {
+                    if (usuario) {
+                        const userData = JSON.parse(usuario);
+                        nombreMostrar = userData.nombre || userData.username || userData.login || username || 'Usuario';
+                    } else if (username) {
+                        nombreMostrar = username;
+                    }
+                } catch (e) {
+                    nombreMostrar = username || 'Usuario';
+                }
+
+                // Actualizar todos los lugares donde se muestra el nombre
+                $('#nombreUsuario').text(nombreMostrar);
+                $('#userNameDisplay').text(nombreMostrar);
+                $('#welcomeUserName').text(nombreMostrar);
+
+                // También actualizar cualquier otro lugar con clase profile_info
+                $('.profile_info h2').text(nombreMostrar);
+            }
+        });
+    </script>
+</body>
+</html>

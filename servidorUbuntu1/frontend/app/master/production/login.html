@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Meta tag para permitir CORS -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * self 'unsafe-inline' 'unsafe-eval'; connect-src * self http://192.168.191.20:8000;">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sistema de Gestión | Login</title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+
+    <style>
+        .alert {
+            display: none;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+            .loading i {
+                animation: spin 1s linear infinite;
+            }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .login_content .btn {
+            margin-top: 10px;
+        }
+
+        .demo-credentials {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #666;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+            .demo-credentials strong {
+                color: #333;
+                font-size: 1rem;
+            }
+
+            .demo-credentials ul {
+                margin-top: 10px;
+                padding-left: 20px;
+            }
+
+            .demo-credentials li {
+                margin-bottom: 5px;
+            }
+
+            .demo-credentials i {
+                color: #1ABB9C;
+                width: 20px;
+            }
+    </style>
+</head>
+
+<body class="login">
+    <div>
+        <a class="hiddenanchor" id="signup"></a>
+        <a class="hiddenanchor" id="signin"></a>
+
+        <div class="login_wrapper">
+            <!-- Mensaje de error -->
+            <div class="alert alert-danger" id="errorMessage" role="alert"></div>
+
+            <!-- Loading spinner -->
+            <div class="loading" id="loading">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Verificando credenciales...</p>
+            </div>
+
+            <div class="animate form login_form">
+                <section class="login_content">
+                    <form id="loginForm" onsubmit="return false;">
+                        <h1>Papada Software</h1>
+                        <h5>Sistema de Gestión</h5>
+                        <br>
+                        <div>
+                            <input type="text" class="form-control" id="username" placeholder="Usuario" required="" autofocus />
+                        </div>
+                        <div>
+                            <input type="password" class="form-control" id="password" placeholder="Contraseña" required="" />
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary submit" onclick="validarLogin()">
+                                <i class="fa fa-sign-in"></i> Ingresar
+                            </button>
+                            <a class="reset_pass" href="#">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <!-- Credenciales de prueba -->
+                        <div class="demo-credentials">
+                            <strong><i class="fa fa-key"></i> Credenciales válidas:</strong>
+                            <ul>
+                                <li><i class="fa fa-user"></i> <strong>agonzalez</strong> <i class="fa fa-lock"></i> pass001 (Directora)</li>
+                                <li><i class="fa fa-user"></i> <strong>crodriguez</strong> <i class="fa fa-lock"></i> pass002 (Jefe Sistemas)</li>
+                                <li><i class="fa fa-user"></i> <strong>mcastillo</strong> <i class="fa fa-lock"></i> pass003 (Analista)</li>
+                            </ul>
+                        </div>
+
+                        <div class="separator">
+                            <div>
+                                <h1><i class="fa fa-database"></i> Sistema Gestión</h1>
+                                <p>© Papada Software 2026 Todos los derechos reservados.</p>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Configuración de la API
+        const API_URL = 'http://192.168.191.20:8000/api/usuarios';
+
+        // Función para mostrar/ocultar elementos
+        function mostrarError(mensaje) {
+            $('#errorMessage').text(mensaje).fadeIn();
+            setTimeout(() => $('#errorMessage').fadeOut(), 5000);
+        }
+
+        function mostrarSuccess(mensaje) {
+            $('#errorMessage').removeClass('alert-danger').addClass('alert-success').text(mensaje).fadeIn();
+            setTimeout(() => $('#errorMessage').fadeOut(), 3000);
+        }
+
+        function mostrarLoading(mostrar) {
+            if (mostrar) {
+                $('#loading').fadeIn();
+                $('.login_content').css('opacity', '0.6');
+            } else {
+                $('#loading').fadeOut();
+                $('.login_content').css('opacity', '1');
+            }
+        }
+
+        // Validar login contra la API
+        async function validarLogin() {
+            const login = $('#username').val().trim();
+            const password = $('#password').val().trim();
+
+            if (!login || !password) {
+                mostrarError('Por favor ingresa usuario y contraseña');
+                return;
+            }
+
+            mostrarLoading(true);
+
+            try {
+                console.log('📤 Enviando petición a:', `${API_URL}/login/`);
+                console.log('📦 Datos:', { login: login, password: password });
+
+                const response = await fetch(`${API_URL}/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        login: login,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📥 Respuesta del servidor:', data);
+
+                if (response.ok) {
+                    // Login exitoso
+                    mostrarSuccess('✅ Login exitoso. Redirigiendo...');
+
+                    // Guardar datos del usuario
+                    localStorage.setItem('usuario', JSON.stringify(data));
+                    localStorage.setItem('username', login);
+
+                    // Pequeña pausa para ver el mensaje
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    // Error de login
+                    mostrarError(data.error || data.message || 'Usuario o contraseña incorrectos');
+                }
+            } catch (error) {
+                console.error('❌ Error de conexión:', error);
+                mostrarError('Error de conexión con el servidor. Verifica que el backend esté corriendo.');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        // Eventos al cargar la página
+        $(document).ready(function () {
+            // Verificar si ya hay sesión activa
+            if (localStorage.getItem('usuario')) {
+                window.location.href = 'index.html';
+            }
+
+            // Login al presionar Enter
+            $('#password').keypress(function (e) {
+                if (e.which === 13) {
+                    validarLogin();
+                }
+            });
+
+            $('#username').keypress(function (e) {
+                if (e.which === 13) {
+                    $('#password').focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

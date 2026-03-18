@@ -1,0 +1,16 @@
+                    List of relations
+ Schema |        Name         | Type  |      Owner       
+--------+---------------------+-------+------------------
+ public | area                | table | superamigos_user
+ public | asignacion          | table | superamigos_user
+ public | detalle_requisicion | table | superamigos_user
+ public | estado_requi        | table | superamigos_user
+ public | funciones           | table | superamigos_user
+ public | log_requisicion     | table | superamigos_user
+ public | perfil              | table | superamigos_user
+ public | producto            | table | superamigos_user
+ public | proveedor           | table | superamigos_user
+ public | requisicion         | table | superamigos_user
+ public | usuario             | table | superamigos_user
+(11 rows)
+

@@ -1,0 +1,9 @@
+zone "papadasoftware.com" {
+    type master;
+    file "/etc/bind/db.papadasoftware.com";
+};
+
+zone "100.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/db.100.168.192";
+};

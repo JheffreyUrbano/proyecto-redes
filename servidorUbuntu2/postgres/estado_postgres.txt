@@ -1,0 +1,8 @@
+● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; preset: enabled)
+     Active: active (exited) since Mon 2026-03-16 10:47:46 -05; 1h 23min ago
+   Main PID: 7453 (code=exited, status=0/SUCCESS)
+        CPU: 1ms
+
+mar 16 10:47:46 servidorUbuntu2 systemd[1]: Starting postgresql.service - PostgreSQL RDBMS...
+mar 16 10:47:46 servidorUbuntu2 systemd[1]: Finished postgresql.service - PostgreSQL RDBMS.

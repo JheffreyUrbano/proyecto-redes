@@ -1,0 +1,12 @@
+$TTL    604800
+@   IN  SOA papadasoftware.com. root.papadasoftware.com. (
+                3
+           604800
+            86400
+          2419200
+           604800 )
+
+@   IN  NS  servidor1.papadasoftware.com.
+
+2   IN  PTR servidor1.papadasoftware.com.
+3   IN  PTR servidor2.papadasoftware.com.

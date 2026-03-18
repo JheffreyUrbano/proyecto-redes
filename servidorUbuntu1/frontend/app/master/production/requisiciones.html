@@ -1,0 +1,788 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sistema de Gestión | Requisiciones</title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Datatables -->
+    <link href="../vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 -->
+    <link href="../vendors/select2/dist/css/select2.min.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+
+    <style>
+        .modal-header {
+            background: #1ABB9C;
+            color: white;
+        }
+
+            .modal-header .close {
+                color: white;
+                opacity: 0.8;
+            }
+
+                .modal-header .close:hover {
+                    opacity: 1;
+                }
+
+        .action-btns .btn {
+            margin: 0 2px;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 9999;
+            text-align: center;
+            padding-top: 20%;
+        }
+
+            .loading-overlay i {
+                font-size: 3rem;
+                color: #1ABB9C;
+            }
+
+        .estado-badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-weight: normal;
+        }
+
+        .estado-pendiente {
+            background: #f39c12;
+            color: white;
+        }
+
+        .estado-aprobada {
+            background: #27ae60;
+            color: white;
+        }
+
+        .estado-rechazada {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .estado-completada {
+            background: #3498db;
+            color: white;
+        }
+
+        .campo-fijo {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .info-usuario {
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid #1ABB9C;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+
+            .info-usuario i {
+                color: #1ABB9C;
+                margin-right: 8px;
+            }
+
+        .select2-container .select2-selection--single {
+            height: 38px;
+            border: 1px solid #ddd;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+    </style>
+</head>
+
+<body class="nav-md">
+    <div class="container body">
+        <div class="main_container">
+            <!-- MENÚ LATERAL IZQUIERDO -->
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title">
+                            <i class="fa fa-database"></i> <span>Sistema Gestión</span>
+                        </a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="images/img.jpg" class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Bienvenido,</span>
+                            <h2 id="nombreUsuario">Cargando...</h2>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>Menú Principal</h3>
+                            <ul class="nav side-menu">
+                                <li><a href="index.html"><i class="fa fa-home"></i> Inicio</a></li>
+                                <li><a href="requisiciones.html" class="active"><i class="fa fa-shopping-cart"></i> Requisiciones</a></li>
+                                <li><a href="#"><i class="fa fa-database"></i> Respaldos</a></li>
+                                <li><a href="#"><i class="fa fa-bar-chart-o"></i> Reportes</a></li>
+                                <li><a href="#"><i class="fa fa-cog"></i> Configuración</a></li>
+                                <li><a href="#"><i class="fa fa-users"></i> Usuarios</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" title="Configuración"><span class="glyphicon glyphicon-cog"></span></a>
+                        <a data-toggle="tooltip" title="Pantalla completa"><span class="glyphicon glyphicon-fullscreen"></span></a>
+                        <a data-toggle="tooltip" title="Bloquear"><span class="glyphicon glyphicon-eye-close"></span></a>
+                        <a href="javascript:void(0);" onclick="cerrarSesion()" data-toggle="tooltip" title="Salir"><span class="glyphicon glyphicon-off"></span></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BARRA SUPERIOR -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <div class="nav toggle">
+                        <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                    </div>
+                    <nav class="nav navbar-nav">
+                        <ul class="navbar-right">
+                            <li class="nav-item dropdown open">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown">
+                                    <img src="images/img.jpg"><span id="userNameDisplay">Usuario</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-usermenu pull-right">
+                                    <a class="dropdown-item" href="#"> Perfil</a>
+                                    <a class="dropdown-item" href="#"> Configuración</a>
+                                    <a class="dropdown-item" href="javascript:cerrarSesion()"><i class="fa fa-sign-out pull-right"></i> Cerrar Sesión</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown open">
+                                <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="badge bg-green">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="right_col" role="main">
+                <div class="">
+                    <div class="page-title">
+                        <div class="title_left">
+                            <h3>Requisiciones <small>Gestión de requisiciones</small></h3>
+                        </div>
+                        <div class="title_right">
+                            <div class="col-md-5 col-sm-5 form-group pull-right top_search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-secondary" type="button" onclick="filtrarTabla()">Ir</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2>Listado de Requisiciones</h2>
+                                    <ul class="nav navbar-right panel_toolbox">
+                                        <li>
+                                            <button class="btn btn-success btn-sm" onclick="abrirModalNuevo()">
+                                                <i class="fa fa-plus"></i> Nueva Requisición
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="table-responsive">
+                                        <table id="tablaRequisiciones" class="table table-striped table-bordered" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>N° Requisición</th>
+                                                    <th>Fecha</th>
+                                                    <th>Usuario</th>
+                                                    <th>Proveedor</th>
+                                                    <th>Observaciones</th>
+                                                    <th>Estado</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaBody">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">Cargando datos...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer>
+                <div class="pull-right">Sistema de Gestión v1.0</div>
+                <div class="clearfix"></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR/EDITAR REQUISICIÓN -->
+    <div class="modal fade" id="modalRequisicion" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modalTitle">Nueva Requisición</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Info del usuario que hace la requisición -->
+                    <div class="info-usuario" id="infoUsuario">
+                        <i class="fa fa-user-circle"></i>
+                        <strong>Usuario solicitante:</strong> <span id="usuarioLogueado">Cargando...</span>
+                        <br>
+                        <i class="fa fa-hashtag"></i>
+                        <strong>Código usuario:</strong> <span id="codigoUsuario">Cargando...</span>
+                    </div>
+
+                    <form id="formRequisicion">
+                        <input type="hidden" id="requisicionId">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="requino">N° Requisición <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control campo-fijo" id="requino" readonly>
+                                    <small class="text-muted">Se genera automáticamente</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha">Fecha <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="fecha" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="codproveedor">Proveedor <span class="text-danger">*</span></label>
+                                    <select class="form-control select2" id="codproveedor" style="width: 100%;" required>
+                                        <option value="">Seleccione un proveedor...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="obs">Observaciones <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="obs" placeholder="Observaciones" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="codestado">Estado</label>
+                                    <select class="form-control" id="codestado">
+                                        <option value="01">Pendiente</option>
+                                        <option value="02">Aprobada</option>
+                                        <option value="03">Rechazada</option>
+                                        <option value="04">Completada</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="codusuario">Código Usuario</label>
+                                    <input type="text" class="form-control campo-fijo" id="codusuario" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarRequisicion()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h4 class="modal-title">Confirmar Eliminación</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar esta requisición?</p>
+                    <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmarEliminar()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <i class="fa fa-spinner fa-spin"></i>
+        <h4>Procesando...</h4>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+    <!-- Datatables -->
+    <script src="../vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="../vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <!-- Select2 -->
+    <script src="../vendors/select2/dist/js/select2.min.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="../build/js/custom.min.js"></script>
+
+    <script>
+        // Configuración
+        const API_URL = 'http://192.168.191.20:8000/api';
+        let requisiciones = [];
+        let proveedores = [];
+        let requisicionAEliminar = null;
+        let usuarioActual = {
+            login: '',
+            nombre: '',
+            cargo: '',
+            coduuario: ''
+        };
+
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+
+        function mostrarLoading(mostrar) {
+            $('#loadingOverlay').css('display', mostrar ? 'block' : 'none');
+        }
+
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const alerta = $(`
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+                        ${mensaje}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                `);
+            $('body').append(alerta);
+            setTimeout(() => alerta.alert('close'), 3000);
+        }
+
+        function getBadgeEstado(codestado) {
+            const estados = {
+                '01': { texto: 'Pendiente', clase: 'estado-pendiente' },
+                '02': { texto: 'Aprobada', clase: 'estado-aprobada' },
+                '03': { texto: 'Rechazada', clase: 'estado-rechazada' },
+                '04': { texto: 'Completada', clase: 'estado-completada' }
+            };
+            const estado = estados[codestado] || { texto: 'Desconocido', clase: 'badge-secondary' };
+            return `<span class="estado-badge ${estado.clase}">${estado.texto}</span>`;
+        }
+
+        function getNombreProveedor(codproveedor) {
+            if (!proveedores || proveedores.length === 0) return codproveedor;
+            const proveedor = proveedores.find(p => p.codproveedor === codproveedor);
+            return proveedor ? proveedor.descripcion : codproveedor;
+        }
+
+        function formatearFecha(fechaStr) {
+            if (!fechaStr) return '';
+            const fecha = new Date(fechaStr);
+            return fecha.toLocaleDateString('es-CO');
+        }
+
+        // ============================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================
+
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function cargarDatosUsuario() {
+            const usuario = localStorage.getItem('usuario');
+            const username = localStorage.getItem('username');
+
+            if (!usuario && !username) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                if (usuario) {
+                    const userData = JSON.parse(usuario);
+                    usuarioActual = {
+                        login: userData.login || userData.username || username,
+                        nombre: userData.nombre || userData.username || username,
+                        cargo: userData.cargo || '',
+                        coduuario: userData.coduuario || 'U001'
+                    };
+                } else if (username) {
+                    usuarioActual = {
+                        login: username,
+                        nombre: username,
+                        cargo: '',
+                        coduuario: 'U001'
+                    };
+                }
+            } catch (e) {
+                usuarioActual = {
+                    login: username || 'Usuario',
+                    nombre: username || 'Usuario',
+                    cargo: '',
+                    coduuario: 'U001'
+                };
+            }
+
+            console.log('👤 Usuario actual:', usuarioActual);
+            $('#nombreUsuario, #userNameDisplay').text(usuarioActual.nombre);
+            $('#usuarioLogueado').text(`${usuarioActual.nombre} (${usuarioActual.login})`);
+            $('#codigoUsuario').text(usuarioActual.coduuario);
+            $('#codusuario').val(usuarioActual.coduuario);
+        }
+
+        // ============================================
+        // FUNCIONES PARA CARGAR PROVEEDORES
+        // ============================================
+
+        async function cargarProveedores() {
+            try {
+                const response = await fetch(`${API_URL}/productos/proveedores/`);
+                proveedores = await response.json();
+                console.log('✅ Proveedores cargados:', proveedores);
+
+                const $select = $('#codproveedor');
+                $select.empty().append('<option value="">Seleccione un proveedor...</option>');
+                proveedores.forEach(prov => {
+                    $select.append(`<option value="${prov.codproveedor}">${prov.descripcion} (${prov.codproveedor})</option>`);
+                });
+                $select.select2({
+                    placeholder: 'Seleccione un proveedor...',
+                    allowClear: true,
+                    width: '100%'
+                });
+            } catch (error) {
+                console.error('❌ Error cargando proveedores:', error);
+                mostrarAlerta('Error al cargar proveedores', 'danger');
+            }
+        }
+
+        // ============================================
+        // FUNCIONES PARA CONSECUTIVO
+        // ============================================
+
+        async function obtenerUltimoRequisito() {
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/?ordering=-requino`);
+                const data = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    let ultimoNumero = 0;
+                    if (data[0].requino && !isNaN(parseInt(data[0].requino))) {
+                        ultimoNumero = parseInt(data[0].requino);
+                    }
+                    if (ultimoNumero > 0) {
+                        return ultimoNumero + 1;
+                    }
+                }
+                return 1;
+            } catch (error) {
+                console.error('❌ Error obteniendo último requisito:', error);
+                return 1;
+            }
+        }
+
+        // ============================================
+        // FUNCIONES CRUD - REQUISICIONES
+        // ============================================
+
+        async function cargarRequisiciones() {
+            mostrarLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/`);
+                if (response.ok) {
+                    requisiciones = await response.json();
+                    console.log('✅ Requisiciones cargadas:', requisiciones);
+                    renderizarTabla(requisiciones);
+                } else {
+                    $('#tablaBody').html('<tr><td colspan="7" class="text-center text-danger">Error al cargar datos</td></tr>');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                $('#tablaBody').html('<tr><td colspan="7" class="text-center text-danger">Error de conexión</td></tr>');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function renderizarTabla(datos) {
+            if (!datos || datos.length === 0) {
+                $('#tablaBody').html('<tr><td colspan="7" class="text-center">No hay requisiciones para mostrar</td></tr>');
+                return;
+            }
+
+            let html = '';
+            datos.forEach(req => {
+                html += `
+                        <tr>
+                            <td>${req.requino}</td>
+                            <td>${formatearFecha(req.fecha)}</td>
+                            <td>${req.codusuario || '-'}</td>
+                            <td>${getNombreProveedor(req.codproveedor)}</td>
+                            <td>${req.obs || '-'}</td>
+                            <td>${getBadgeEstado(req.codestado)}</td>
+                            <td class="action-btns">
+                                <button class="btn btn-info btn-xs" onclick="verDetalle('${req.requino}')" title="Ver Detalle">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button class="btn btn-warning btn-xs" onclick="editarRequisicion('${req.requino}')" title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-xs" onclick="eliminarRequisicion('${req.requino}')" title="Eliminar">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+            });
+            $('#tablaBody').html(html);
+        }
+
+        function filtrarTabla() {
+            const texto = $('#searchInput').val().toLowerCase();
+            if (!texto) {
+                renderizarTabla(requisiciones);
+                return;
+            }
+            const filtradas = requisiciones.filter(req =>
+                (req.requino && req.requino.toString().includes(texto)) ||
+                (req.obs && req.obs.toLowerCase().includes(texto)) ||
+                (req.codusuario && req.codusuario.toLowerCase().includes(texto)) ||
+                (req.codproveedor && getNombreProveedor(req.codproveedor).toLowerCase().includes(texto))
+            );
+            renderizarTabla(filtradas);
+        }
+
+        function verDetalle(requino) {
+            console.log('🔍 Abriendo detalle de requisición:', requino);
+            window.location.href = `detalle_requisicion.html?id=${requino}`;
+        }
+
+        async function abrirModalNuevo() {
+            $('#modalTitle').text('Nueva Requisición');
+            $('#formRequisicion')[0].reset();
+            $('#requisicionId').val('');
+
+            mostrarLoading(true);
+            const nuevoNumero = await obtenerUltimoRequisito();
+            $('#requino').val(nuevoNumero.toString().padStart(6, '0'));
+            mostrarLoading(false);
+
+            $('#codusuario').val(usuarioActual.coduuario);
+            const hoy = new Date().toISOString().split('T')[0];
+            $('#fecha').val(hoy);
+            $('#codestado').val('01');
+            $('#codproveedor').val(null).trigger('change');
+            $('#modalRequisicion').modal('show');
+        }
+
+        async function editarRequisicion(requino) {
+            mostrarLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/${requino}/`);
+                if (response.ok) {
+                    const req = await response.json();
+                    $('#modalTitle').text('Editar Requisición');
+                    $('#requisicionId').val(req.requino);
+                    $('#requino').val(req.requino);
+                    $('#fecha').val(req.fecha ? req.fecha.split('T')[0] : '');
+                    $('#codproveedor').val(req.codproveedor).trigger('change');
+                    $('#obs').val(req.obs || '');
+                    $('#codestado').val(req.codestado || '01');
+                    $('#codusuario').val(req.codusuario || usuarioActual.coduuario);
+                    $('#modalRequisicion').modal('show');
+                } else {
+                    mostrarAlerta('Error al cargar requisición', 'danger');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                mostrarAlerta('Error de conexión', 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        async function guardarRequisicion() {
+            if (!$('#formRequisicion')[0].checkValidity()) {
+                $('#formRequisicion')[0].reportValidity();
+                return;
+            }
+
+            const requino = $('#requino').val();
+            const esNuevo = !$('#requisicionId').val();
+
+            // IMPORTANTE: Agregar valor_total: 0
+            const datos = {
+                requino: requino,
+                fecha: $('#fecha').val(),
+                obs: $('#obs').val(),
+                codusuario: $('#codusuario').val(),
+                codestado: $('#codestado').val(),
+                codproveedor: $('#codproveedor').val(),
+                valor_total: 0  // ← Campo requerido por la API
+            };
+
+            console.log('📤 Datos a enviar:', datos);
+            mostrarLoading(true);
+
+            try {
+                const url = esNuevo
+                    ? `${API_URL}/requisiciones/`
+                    : `${API_URL}/requisiciones/${requino}/`;
+
+                const response = await fetch(url, {
+                    method: esNuevo ? 'POST' : 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                const responseData = await response.json();
+                console.log('📥 Respuesta:', responseData);
+
+                if (response.ok) {
+                    mostrarAlerta(`Requisición ${esNuevo ? 'creada' : 'actualizada'} exitosamente`);
+                    $('#modalRequisicion').modal('hide');
+                    await cargarRequisiciones();
+                } else {
+                    let mensajeError = 'Error al guardar:\n';
+                    for (const [campo, errores] of Object.entries(responseData)) {
+                        mensajeError += `- ${campo}: ${errores.join(', ')}\n`;
+                    }
+                    mostrarAlerta(mensajeError, 'danger');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function eliminarRequisicion(requino) {
+            requisicionAEliminar = requino;
+            $('#modalEliminar').modal('show');
+        }
+
+        async function confirmarEliminar() {
+            if (!requisicionAEliminar) return;
+            mostrarLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/${requisicionAEliminar}/`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    mostrarAlerta('Requisición eliminada exitosamente');
+                    $('#modalEliminar').modal('hide');
+                    await cargarRequisiciones();
+                } else {
+                    mostrarAlerta('Error al eliminar', 'danger');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                mostrarAlerta('Error de conexión', 'danger');
+            } finally {
+                mostrarLoading(false);
+                requisicionAEliminar = null;
+            }
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+
+        $(document).ready(function () {
+            cargarDatosUsuario();
+            cargarProveedores();
+            cargarRequisiciones();
+
+            $('.select2').select2({
+                placeholder: 'Seleccione un proveedor...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#modalRequisicion').on('hidden.bs.modal', function () {
+                $('#formRequisicion')[0].reset();
+            });
+
+            $('#searchInput').on('keyup', function (e) {
+                if (e.key === 'Enter') filtrarTabla();
+            });
+        });
+    </script>
+</body>
+</html>
