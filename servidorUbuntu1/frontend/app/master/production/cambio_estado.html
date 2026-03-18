@@ -1,0 +1,1394 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sistema de Gestión | Cambio de Estado</title>
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Datatables -->
+    <link href="../vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 -->
+    <link href="../vendors/select2/dist/css/select2.min.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="../build/css/custom.min.css" rel="stylesheet">
+
+    <style>
+        .modal-header {
+            background: #1ABB9C;
+            color: white;
+        }
+
+            .modal-header .close {
+                color: white;
+                opacity: 0.8;
+            }
+
+                .modal-header .close:hover {
+                    opacity: 1;
+                }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 9999;
+            text-align: center;
+            padding-top: 20%;
+        }
+
+            .loading-overlay i {
+                font-size: 3rem;
+                color: #1ABB9C;
+            }
+
+        .estado-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .estado-pendiente {
+            background: #f39c12;
+            color: white;
+        }
+
+        .estado-revision {
+            background: #3498db;
+            color: white;
+        }
+
+        .estado-oc {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .estado-rechazado {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .workflow-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .workflow-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+            .workflow-step.active .step-icon {
+                background-color: #1ABB9C;
+                color: white;
+                border-color: #1ABB9C;
+                transform: scale(1.1);
+                box-shadow: 0 0 15px rgba(26,187,156,0.3);
+            }
+
+            .workflow-step.completed .step-icon {
+                background-color: #27ae60;
+                color: white;
+                border-color: #27ae60;
+            }
+
+            .workflow-step.rejected .step-icon {
+                background-color: #e74c3c;
+                color: white;
+                border-color: #e74c3c;
+            }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-line {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #dee2e6;
+            z-index: 0;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .active .step-label {
+            color: #1ABB9C;
+            font-weight: bold;
+        }
+
+        .completed .step-label {
+            color: #27ae60;
+        }
+
+        .rejected .step-label {
+            color: #e74c3c;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-left: 4px solid #1ABB9C;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+            .info-card i {
+                color: #1ABB9C;
+                margin-right: 8px;
+            }
+
+        .log-table {
+            font-size: 13px;
+        }
+
+            .log-table th {
+                background-color: #f8f9fa;
+                white-space: nowrap;
+            }
+
+        .json-viewer {
+            max-width: 200px;
+            overflow-x: auto;
+            white-space: nowrap;
+            font-size: 11px;
+            background: #f5f5f5;
+            padding: 3px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+            .json-viewer:hover {
+                background: #e9ecef;
+            }
+
+        .btn-siguiente-estado {
+            background: #1ABB9C;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+            .btn-siguiente-estado:hover {
+                background: #149377;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 2px 10px rgba(26,187,156,0.3);
+            }
+
+            .btn-siguiente-estado:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .observaciones-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        /* Clase para ocultar el JSON */
+        .json-hidden {
+            display: none;
+        }
+
+        /* Botón para exportar JSON */
+        .btn-export {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body class="nav-md">
+    <div class="container body">
+        <div class="main_container">
+            <!-- MENÚ LATERAL IZQUIERDO -->
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title">
+                            <i class="fa fa-database"></i> <span>Sistema Gestión</span>
+                        </a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="images/img.jpg" class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Bienvenido,</span>
+                            <h2 id="nombreUsuario">Cargando...</h2>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>Menú Principal</h3>
+                            <ul class="nav side-menu">
+                                <li><a href="index.html"><i class="fa fa-home"></i> Inicio</a></li>
+                                <li><a href="requisiciones.html"><i class="fa fa-shopping-cart"></i> Requisiciones</a></li>
+                                <li class="active"><a href="cambio_estado.html"><i class="fa fa-exchange"></i> Cambio de Estado</a></li>
+                                <li><a href="log_requisiciones.html"><i class="fa fa-history"></i> Log de Cambios</a></li>
+                                <li><a href="#"><i class="fa fa-bar-chart-o"></i> Reportes</a></li>
+                                <li><a href="#"><i class="fa fa-cog"></i> Configuración</a></li>
+                                <li><a href="#"><i class="fa fa-users"></i> Usuarios</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" title="Configuración"><span class="glyphicon glyphicon-cog"></span></a>
+                        <a data-toggle="tooltip" title="Pantalla completa"><span class="glyphicon glyphicon-fullscreen"></span></a>
+                        <a data-toggle="tooltip" title="Bloquear"><span class="glyphicon glyphicon-eye-close"></span></a>
+                        <a href="javascript:void(0);" onclick="cerrarSesion()" data-toggle="tooltip" title="Salir"><span class="glyphicon glyphicon-off"></span></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BARRA SUPERIOR -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <div class="nav toggle">
+                        <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                    </div>
+                    <nav class="nav navbar-nav">
+                        <ul class="navbar-right">
+                            <li class="nav-item dropdown open">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown">
+                                    <img src="images/img.jpg"><span id="userNameDisplay">Usuario</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-usermenu pull-right">
+                                    <a class="dropdown-item" href="#"> Perfil</a>
+                                    <a class="dropdown-item" href="#"> Configuración</a>
+                                    <a class="dropdown-item" href="javascript:cerrarSesion()"><i class="fa fa-sign-out pull-right"></i> Cerrar Sesión</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown open">
+                                <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="badge bg-green">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="right_col" role="main">
+                <div class="">
+                    <div class="page-title">
+                        <div class="title_left">
+                            <h3>Cambio de Estado <small>Requisiciones</small></h3>
+                        </div>
+                        <div class="title_right">
+                            <div class="col-md-5 col-sm-5 form-group pull-right top_search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar requisición...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-secondary" type="button" onclick="filtrarRequisiciones()">
+                                            <i class="fa fa-search"></i> Buscar
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <!-- Selector de Requisición -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2><i class="fa fa-shopping-cart"></i> Seleccionar Requisición</h2>
+                                    <ul class="nav navbar-right panel_toolbox">
+                                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <select class="form-control select2" id="requisicionSelect" style="width: 100%;" onchange="cargarRequisicion()">
+                                                <option value="">Seleccione una requisición...</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button class="btn btn-info" onclick="recargarLista()">
+                                                <i class="fa fa-refresh"></i> Recargar Lista
+                                            </button>
+                                            <button class="btn btn-primary" onclick="verHistorialCompleto()">
+                                                <i class="fa fa-history"></i> Ver Historial Completo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos de la Requisición -->
+                    <div id="datosRequisicion" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="x_panel">
+                                    <div class="x_title">
+                                        <h2><i class="fa fa-info-circle"></i> Información de la Requisición</h2>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="x_content">
+                                        <div class="info-card">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <strong><i class="fa fa-hashtag"></i> N° Requisición:</strong>
+                                                    <p class="h4" id="reqNumero">-</p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong><i class="fa fa-user"></i> Solicitante:</strong>
+                                                    <p id="reqSolicitante">-</p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong><i class="fa fa-calendar"></i> Fecha:</strong>
+                                                    <p id="reqFecha">-</p>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong><i class="fa fa-tag"></i> Proveedor:</strong>
+                                                    <p id="reqProveedor">-</p>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-md-6">
+                                                    <strong><i class="fa fa-file-text"></i> Observaciones:</strong>
+                                                    <p id="reqObservaciones">-</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong><i class="fa fa-flag"></i> Estado Actual:</strong>
+                                                    <p><span id="estadoActual" class="estado-badge">-</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Workflow de estados -->
+                                        <div class="workflow-container">
+                                            <div class="workflow-line"></div>
+                                            <div class="workflow-step" id="stepPendiente">
+                                                <div class="step-icon">1</div>
+                                                <div class="step-label">Pendiente de Revisión</div>
+                                            </div>
+                                            <div class="workflow-step" id="stepAutorizacion">
+                                                <div class="step-icon">2</div>
+                                                <div class="step-label">Pendiente de Autorización</div>
+                                            </div>
+                                            <div class="workflow-step" id="stepOC">
+                                                <div class="step-icon">3</div>
+                                                <div class="step-label">Convertida en OC</div>
+                                            </div>
+                                            <div class="workflow-step" id="stepRechazado">
+                                                <div class="step-icon"><i class="fa fa-times"></i></div>
+                                                <div class="step-label">Rechazado</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Formulario de cambio de estado -->
+                                        <div class="row mt-4">
+                                            <div class="col-md-12">
+                                                <form id="formCambioEstado" onsubmit="return false;">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Estado Anterior:</label>
+                                                                <input type="text" class="form-control" id="estadoAnterior" readonly>
+                                                                <input type="hidden" id="codestadoAnterior">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Nuevo Estado:</label>
+                                                                <select class="form-control" id="estadoNuevo" onchange="actualizarSugerencia()">
+                                                                    <option value="">Seleccione...</option>
+                                                                    <option value="01">Pendiente de Revisión</option>
+                                                                    <option value="02">Pendiente de Autorización</option>
+                                                                    <option value="03">Convertida en OC</option>
+                                                                    <option value="04">Rechazada</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="form-group">
+                                                                <label>Observaciones:</label>
+                                                                <textarea class="form-control" id="observaciones" rows="3" placeholder="Ingrese observaciones sobre el cambio de estado..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- JSON oculto con clase json-hidden -->
+                                                    <div class="json-hidden">
+                                                        <div class="form-group">
+                                                            <label>Datos modificados (JSON):</label>
+                                                            <textarea class="form-control" id="datosModificados" rows="2" readonly placeholder="Se generará automáticamente..."></textarea>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Sugerencia de siguiente estado -->
+                                                    <div id="sugerenciaEstado" class="alert alert-info" style="display: none;">
+                                                        <i class="fa fa-info-circle"></i>
+                                                        <span id="mensajeSugerencia"></span>
+                                                        <button class="btn btn-sm btn-info" onclick="aplicarSugerencia()">
+                                                            Aplicar sugerencia
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-md-12 text-center">
+                                                            <button type="button" class="btn btn-success btn-lg" onclick="cambiarEstado()" id="btnCambiarEstado">
+                                                                <i class="fa fa-check"></i> Cambiar Estado
+                                                            </button>
+                                                            <button type="button" class="btn btn-danger btn-lg" onclick="rechazarRequisicion()">
+                                                                <i class="fa fa-times"></i> Rechazar
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary btn-lg" onclick="limpiarFormulario()">
+                                                                <i class="fa fa-refresh"></i> Limpiar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historial de cambios -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="x_panel">
+                                    <div class="x_title">
+                                        <h2>
+                                            <i class="fa fa-history"></i> Historial de Cambios
+                                            <small>(Guardado en localStorage)</small>
+                                        </h2>
+                                        <ul class="nav navbar-right panel_toolbox">
+                                            <li>
+                                                <button class="btn btn-sm btn-primary" onclick="exportarLogsJSON()">
+                                                    <i class="fa fa-download"></i> Exportar JSON
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-sm btn-warning" onclick="importarLogsJSON()">
+                                                    <i class="fa fa-upload"></i> Importar JSON
+                                                </button>
+                                            </li>
+                                        </ul>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="x_content">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered log-table" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Fecha</th>
+                                                        <th>Usuario</th>
+                                                        <th>Acción</th>
+                                                        <th>IP</th>
+                                                        <th>Estado Anterior</th>
+                                                        <th>Estado Nuevo</th>
+                                                        <th>Observaciones</th>
+                                                        <th>Datos Modificados</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="logsBody">
+                                                    <tr>
+                                                        <td colspan="9" class="text-center">Seleccione una requisición para ver su historial</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer>
+                <div class="pull-right">Sistema de Gestión v1.0 - Cambio de Estados</div>
+                <div class="clearfix"></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER DETALLE DEL JSON -->
+    <div class="modal fade" id="modalJson" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Detalle de Datos Modificados</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="jsonDetalle" style="background: #f5f5f5; padding: 10px; border-radius: 4px;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA IMPORTAR JSON -->
+    <div class="modal fade" id="modalImportar" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h4 class="modal-title">Importar Logs desde JSON</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="jsonImport" rows="10" placeholder="Pega aquí el JSON de logs..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="procesarImportacion()">Importar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <i class="fa fa-spinner fa-spin"></i>
+        <h4>Procesando...</h4>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+    <!-- Datatables -->
+    <script src="../vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="../vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <!-- Select2 -->
+    <script src="../vendors/select2/dist/js/select2.min.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="../build/js/custom.min.js"></script>
+
+    <script>
+        // Configuración de la API
+        const API_URL = 'http://192.168.191.20:8000/api';
+        let requisiciones = [];
+        let requisicionActual = null;
+        let proveedores = [];
+        let usuarios = [];
+        let usuarioActual = {
+            login: '',
+            nombre: '',
+            codusuario: '',
+            ip_address: ''
+        };
+
+        // Mapeo de estados
+        const estadosMap = {
+            '01': { nombre: 'Pendiente de Revisión', clase: 'estado-pendiente', next: '02', nextNombre: 'Pendiente de Autorización' },
+            '02': { nombre: 'Pendiente de Autorización', clase: 'estado-revision', next: '03', nextNombre: 'Convertida en OC' },
+            '03': { nombre: 'Convertida en OC', clase: 'estado-oc', next: null, nextNombre: null },
+            '04': { nombre: 'Rechazada', clase: 'estado-rechazado', next: null, nextNombre: null }
+        };
+
+        // ============================================
+        // FUNCIONES PARA MANEJAR LOGS EN LOCALSTORAGE
+        // ============================================
+
+        // Cargar logs desde localStorage
+        function cargarLogsDeLocalStorage() {
+            const logsGuardados = localStorage.getItem('logRequisicion');
+            if (logsGuardados) {
+                try {
+                    logRequisicion = JSON.parse(logsGuardados);
+                    // Actualizar el nextId basado en el último ID
+                    if (logRequisicion.length > 0) {
+                        nextLogId = Math.max(...logRequisicion.map(l => l.id)) + 1;
+                    }
+                    console.log('✅ Logs cargados desde localStorage:', logRequisicion.length);
+                } catch (e) {
+                    console.error('Error cargando logs:', e);
+                    logRequisicion = [];
+                }
+            } else {
+                logRequisicion = [];
+                console.log('No hay logs guardados en localStorage');
+            }
+        }
+
+        // Guardar logs en localStorage
+        function guardarLogsEnLocalStorage() {
+            try {
+                localStorage.setItem('logRequisicion', JSON.stringify(logRequisicion));
+                console.log('✅ Logs guardados en localStorage');
+                return true;
+            } catch (e) {
+                console.error('Error guardando logs:', e);
+                return false;
+            }
+        }
+
+        // Agregar un nuevo log
+        function agregarLog(logData) {
+            const nuevoLog = {
+                id: nextLogId++,
+                requino: logData.requino,
+                codusuario: logData.codusuario,
+                accion: logData.accion,
+                fecha: new Date().toISOString(),
+                ip_address: logData.ip_address || usuarioActual.ip_address,
+                user_agent: logData.user_agent || navigator.userAgent,
+                codestado_anterior: logData.codestado_anterior,
+                codestado_nuevo: logData.codestado_nuevo,
+                observaciones: logData.observaciones || '',
+                datos_modificados: logData.datos_modificados || {}
+            };
+
+            logRequisicion.push(nuevoLog);
+            guardarLogsEnLocalStorage();
+
+            console.log('✅ Log agregado:', nuevoLog);
+
+            if (requisicionActual && nuevoLog.requino === requisicionActual.requino) {
+                mostrarLogsEnTabla(requisicionActual.requino);
+            }
+
+            return nuevoLog;
+        }
+
+        // Exportar logs a archivo JSON
+        function exportarLogsJSON() {
+            const logsStr = JSON.stringify(logRequisicion, null, 2);
+            const blob = new Blob([logsStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `log_requisicion_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            mostrarAlerta('✅ Logs exportados a JSON', 'success');
+        }
+
+        // Importar logs desde JSON
+        function importarLogsJSON() {
+            $('#modalImportar').modal('show');
+        }
+
+        function procesarImportacion() {
+            const jsonStr = $('#jsonImport').val();
+            try {
+                const logsImportados = JSON.parse(jsonStr);
+                if (Array.isArray(logsImportados)) {
+                    // Validar estructura básica
+                    if (logsImportados.length > 0 && logsImportados[0].requino) {
+                        logRequisicion = logsImportados;
+                        // Actualizar nextId
+                        nextLogId = Math.max(...logRequisicion.map(l => l.id)) + 1;
+                        guardarLogsEnLocalStorage();
+                        if (requisicionActual) {
+                            mostrarLogsEnTabla(requisicionActual.requino);
+                        }
+                        $('#modalImportar').modal('hide');
+                        $('#jsonImport').val('');
+                        mostrarAlerta(`✅ ${logsImportados.length} logs importados`, 'success');
+                    } else {
+                        mostrarAlerta('❌ El JSON no tiene el formato correcto', 'danger');
+                    }
+                } else {
+                    mostrarAlerta('❌ El JSON debe ser un array', 'danger');
+                }
+            } catch (e) {
+                mostrarAlerta('❌ Error al parsear JSON: ' + e.message, 'danger');
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+
+        function mostrarLoading(mostrar) {
+            $('#loadingOverlay').css('display', mostrar ? 'block' : 'none');
+        }
+
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const alerta = $(`
+                    <div class="alert alert-${tipo} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+                        ${mensaje}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                `);
+            $('body').append(alerta);
+            setTimeout(() => alerta.alert('close'), 3000);
+        }
+
+        function getBadgeEstado(codestado) {
+            const estado = estadosMap[codestado] || { nombre: 'Desconocido', clase: 'badge-secondary' };
+            return `<span class="estado-badge ${estado.clase}">${estado.nombre}</span>`;
+        }
+
+        function getNombreEstado(codestado) {
+            return estadosMap[codestado] ?.nombre || codestado;
+        }
+
+        function formatearFechaHora(fechaStr) {
+            if (!fechaStr) return '';
+            const fecha = new Date(fechaStr);
+            return fecha.toLocaleString('es-CO');
+        }
+
+        function obtenerIpCliente() {
+            return '192.168.1.' + Math.floor(Math.random() * 255);
+        }
+
+        // ============================================
+        // FUNCIONES DE AUTENTICACIÓN
+        // ============================================
+
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function cargarDatosUsuario() {
+            const usuario = localStorage.getItem('usuario');
+            const username = localStorage.getItem('username');
+
+            if (!usuario && !username) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                if (usuario) {
+                    const userData = JSON.parse(usuario);
+                    usuarioActual = {
+                        login: userData.login || userData.username || username,
+                        nombre: userData.nombre || userData.username || username,
+                        codusuario: userData.codusuario || userData.username || 'U001',
+                        ip_address: obtenerIpCliente()
+                    };
+                } else if (username) {
+                    usuarioActual = {
+                        login: username,
+                        nombre: username,
+                        codusuario: username,
+                        ip_address: obtenerIpCliente()
+                    };
+                }
+            } catch (e) {
+                usuarioActual = {
+                    login: username || 'Usuario',
+                    nombre: username || 'Usuario',
+                    codusuario: username || 'USUARIO',
+                    ip_address: obtenerIpCliente()
+                };
+            }
+
+            $('#nombreUsuario, #userNameDisplay').text(usuarioActual.nombre);
+            console.log('Usuario actual:', usuarioActual);
+        }
+
+        // ============================================
+        // FUNCIONES PARA CARGAR DATOS
+        // ============================================
+
+        async function cargarProveedores() {
+            try {
+                const response = await fetch(`${API_URL}/productos/proveedores/`);
+                proveedores = await response.json();
+            } catch (error) {
+                console.error('Error cargando proveedores:', error);
+            }
+        }
+
+        async function cargarUsuarios() {
+            try {
+                const response = await fetch(`${API_URL}/usuarios/`);
+                if (response.ok) {
+                    usuarios = await response.json();
+                    console.log('Usuarios cargados:', usuarios);
+                }
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+            }
+        }
+
+        function getNombreUsuario(codUsuario) {
+            if (!usuarios || usuarios.length === 0) return codUsuario;
+            const usuario = usuarios.find(u => u.codusuario === codUsuario || u.username === codUsuario);
+            return usuario ? (usuario.nombre || usuario.username) : codUsuario;
+        }
+
+        function getNombreProveedor(codproveedor) {
+            if (!proveedores || proveedores.length === 0) return codproveedor;
+            const proveedor = proveedores.find(p => p.codproveedor === codproveedor);
+            return proveedor ? `${proveedor.descripcion} (${proveedor.codproveedor})` : codproveedor;
+        }
+
+        async function cargarRequisicionesParaSelect() {
+            mostrarLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/?ordering=-fecha`);
+                if (response.ok) {
+                    requisiciones = await response.json();
+
+                    const $select = $('#requisicionSelect');
+                    $select.empty().append('<option value="">Seleccione una requisición...</option>');
+
+                    requisiciones.forEach(req => {
+                        const estado = estadosMap[req.codestado] ?.nombre || req.codestado;
+                        $select.append(`<option value="${req.requino}">${req.requino} - ${req.obs ?.substring(0, 30)}... [${estado}]</option>`);
+                    });
+
+                    $select.trigger('change');
+                }
+            } catch (error) {
+                console.error('Error cargando requisiciones:', error);
+                mostrarAlerta('Error al cargar requisiciones', 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function recargarLista() {
+            cargarRequisicionesParaSelect();
+        }
+
+        function filtrarRequisiciones() {
+            const texto = $('#searchInput').val().toLowerCase();
+            if (!texto) {
+                $('#requisicionSelect option').show();
+                return;
+            }
+
+            $('#requisicionSelect option').each(function () {
+                const optionText = $(this).text().toLowerCase();
+                if (optionText.includes(texto) || $(this).val() === '') {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        // ============================================
+        // FUNCIONES PARA CARGAR REQUISICIÓN
+        // ============================================
+
+        async function cargarRequisicion() {
+            const requino = $('#requisicionSelect').val();
+
+            if (!requino) {
+                $('#datosRequisicion').hide();
+                return;
+            }
+
+            mostrarLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/requisiciones/${requino}/`);
+                if (response.ok) {
+                    requisicionActual = await response.json();
+
+                    // Extraer solo los datos de la requisición
+                    requisicionActual = {
+                        requino: requisicionActual.requino,
+                        fecha: requisicionActual.fecha,
+                        obs: requisicionActual.obs || '',
+                        codusuario: requisicionActual.codusuario,
+                        codestado: requisicionActual.codestado,
+                        codproveedor: requisicionActual.codproveedor,
+                        valor_total: requisicionActual.valor_total || 0
+                    };
+
+                    // Mostrar datos básicos
+                    $('#reqNumero').text(requisicionActual.requino);
+                    $('#reqSolicitante').text(getNombreUsuario(requisicionActual.codusuario));
+                    $('#reqFecha').text(formatearFechaHora(requisicionActual.fecha));
+                    $('#reqProveedor').text(getNombreProveedor(requisicionActual.codproveedor));
+                    $('#reqObservaciones').text(requisicionActual.obs || '-');
+
+                    // Mostrar estado actual
+                    const estadoInfo = estadosMap[requisicionActual.codestado] || { nombre: 'Desconocido', clase: 'badge-secondary' };
+                    $('#estadoActual').html(`<span class="estado-badge ${estadoInfo.clase}">${estadoInfo.nombre}</span>`);
+
+                    // Actualizar campos del formulario
+                    $('#estadoAnterior').val(estadoInfo.nombre);
+                    $('#codestadoAnterior').val(requisicionActual.codestado);
+
+                    // Actualizar workflow
+                    actualizarWorkflow(requisicionActual.codestado);
+
+                    // Mostrar sugerencia de siguiente estado
+                    mostrarSugerenciaEstado(requisicionActual.codestado);
+
+                    // Mostrar logs
+                    mostrarLogsEnTabla(requino);
+
+                    $('#datosRequisicion').show();
+                } else {
+                    mostrarAlerta('Error al cargar requisición', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error de conexión', 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function actualizarWorkflow(codestado) {
+            $('#stepPendiente, #stepAutorizacion, #stepOC, #stepRechazado')
+                .removeClass('active completed rejected');
+
+            if (codestado === '04') {
+                $('#stepRechazado').addClass('rejected');
+                return;
+            }
+
+            if (codestado === '02' || codestado === '03') {
+                $('#stepPendiente').addClass('completed');
+            }
+            if (codestado === '03') {
+                $('#stepAutorizacion').addClass('completed');
+                $('#stepOC').addClass('completed');
+            }
+
+            if (codestado === '01') {
+                $('#stepPendiente').addClass('active');
+            } else if (codestado === '02') {
+                $('#stepAutorizacion').addClass('active');
+            } else if (codestado === '03') {
+                $('#stepOC').addClass('active');
+            }
+        }
+
+        function mostrarSugerenciaEstado(codestadoActual) {
+            const estado = estadosMap[codestadoActual];
+
+            if (estado && estado.next) {
+                $('#sugerenciaEstado').show();
+                $('#sugerenciaEstado').removeClass('alert-warning alert-danger').addClass('alert-info');
+                $('#mensajeSugerencia').html(
+                    `Sugerencia: El siguiente estado lógico es <strong>${estado.nextNombre}</strong>`
+                );
+                $('#estadoNuevo').val(estado.next);
+                actualizarSugerencia();
+                $('#btnCambiarEstado').prop('disabled', false);
+            } else if (codestadoActual === '03') {
+                $('#sugerenciaEstado').show();
+                $('#sugerenciaEstado').removeClass('alert-info alert-danger').addClass('alert-warning');
+                $('#mensajeSugerencia').html(
+                    'Esta requisición ya está convertida en Orden de Compra. No se puede avanzar más.'
+                );
+                $('#estadoNuevo').prop('disabled', true);
+                $('#btnCambiarEstado').prop('disabled', true);
+            } else if (codestadoActual === '04') {
+                $('#sugerenciaEstado').show();
+                $('#sugerenciaEstado').removeClass('alert-info alert-warning').addClass('alert-danger');
+                $('#mensajeSugerencia').html(
+                    'Esta requisición está rechazada. No se puede cambiar su estado.'
+                );
+                $('#estadoNuevo').prop('disabled', true);
+                $('#btnCambiarEstado').prop('disabled', true);
+            } else {
+                $('#sugerenciaEstado').hide();
+                $('#estadoNuevo').prop('disabled', false);
+                $('#btnCambiarEstado').prop('disabled', false);
+            }
+        }
+
+        function aplicarSugerencia() {
+            const codestadoActual = requisicionActual ?.codestado;
+            const estado = estadosMap[codestadoActual];
+
+            if (estado && estado.next) {
+                $('#estadoNuevo').val(estado.next);
+                actualizarSugerencia();
+            }
+        }
+
+        function actualizarSugerencia() {
+            const estadoNuevo = $('#estadoNuevo').val();
+            const estadoAnterior = requisicionActual ?.codestado;
+
+            if (estadoNuevo && estadoAnterior) {
+                const datosModificados = {
+                    estado_anterior: {
+                        codigo: estadoAnterior,
+                        nombre: getNombreEstado(estadoAnterior)
+                    },
+                    estado_nuevo: {
+                        codigo: estadoNuevo,
+                        nombre: getNombreEstado(estadoNuevo)
+                    },
+                    fecha_cambio: new Date().toISOString(),
+                    usuario: usuarioActual.codusuario,
+                    requisicion: requisicionActual.requino
+                };
+
+                $('#datosModificados').val(JSON.stringify(datosModificados, null, 2));
+            } else {
+                $('#datosModificados').val('');
+            }
+        }
+
+        // ============================================
+        // FUNCIONES PARA MOSTRAR LOGS
+        // ============================================
+
+        function mostrarLogsEnTabla(requino) {
+            const logsFiltrados = logRequisicion.filter(log => log.requino === requino);
+
+            if (logsFiltrados.length === 0) {
+                $('#logsBody').html('<tr><td colspan="9" class="text-center">No hay registros de cambios para esta requisición</td></tr>');
+                return;
+            }
+
+            let html = '';
+            logsFiltrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(log => {
+                const estadoAnterior = log.codestado_anterior ? getNombreEstado(log.codestado_anterior) : '-';
+                const estadoNuevo = getNombreEstado(log.codestado_nuevo);
+
+                let datosJson = '-';
+                if (log.datos_modificados) {
+                    const jsonStr = typeof log.datos_modificados === 'string'
+                        ? log.datos_modificados
+                        : JSON.stringify(log.datos_modificados);
+                    datosJson = `<div class="json-viewer" onclick='verJsonDetalle(${JSON.stringify(jsonStr)})'>
+                            <i class="fa fa-code"></i> Ver JSON
+                        </div>`;
+                }
+
+                html += `
+                        <tr>
+                            <td>${log.id}</td>
+                            <td>${formatearFechaHora(log.fecha)}</td>
+                            <td>${getNombreUsuario(log.codusuario) || log.codusuario}</td>
+                            <td>${log.accion}</td>
+                            <td>${log.ip_address || '-'}</td>
+                            <td>${estadoAnterior}</td>
+                            <td>${estadoNuevo}</td>
+                            <td>${log.observaciones || '-'}</td>
+                            <td>${datosJson}</td>
+                        </tr>
+                    `;
+            });
+
+            $('#logsBody').html(html);
+        }
+
+        // ============================================
+        // FUNCIONES PARA CAMBIAR ESTADO
+        // ============================================
+
+        async function cambiarEstado() {
+            if (!requisicionActual) {
+                mostrarAlerta('Debe seleccionar una requisición', 'warning');
+                return;
+            }
+
+            const estadoNuevo = $('#estadoNuevo').val();
+            if (!estadoNuevo) {
+                mostrarAlerta('Debe seleccionar un nuevo estado', 'warning');
+                return;
+            }
+
+            const observaciones = $('#observaciones').val();
+            if (!observaciones) {
+                mostrarAlerta('Debe ingresar observaciones', 'warning');
+                return;
+            }
+
+            mostrarLoading(true);
+
+            try {
+                // Guardar el estado anterior
+                const estadoAnterior = requisicionActual.codestado;
+
+                // 1. ACTUALIZAR LA REQUISICIÓN (API existente)
+                const datosRequisicion = {
+                    requino: requisicionActual.requino,
+                    fecha: requisicionActual.fecha,
+                    obs: requisicionActual.obs,
+                    codusuario: requisicionActual.codusuario,
+                    codestado: estadoNuevo,
+                    codproveedor: requisicionActual.codproveedor,
+                    valor_total: requisicionActual.valor_total || 0
+                };
+
+                const response = await fetch(`${API_URL}/requisiciones/${requisicionActual.requino}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosRequisicion)
+                });
+
+                if (response.ok) {
+                    // 2. PREPARAR DATOS PARA EL LOG
+                    const datosModificados = {
+                        estado_anterior: {
+                            codigo: estadoAnterior,
+                            nombre: getNombreEstado(estadoAnterior)
+                        },
+                        estado_nuevo: {
+                            codigo: estadoNuevo,
+                            nombre: getNombreEstado(estadoNuevo)
+                        },
+                        fecha_cambio: new Date().toISOString(),
+                        usuario: usuarioActual.codusuario,
+                        requisicion: requisicionActual.requino
+                    };
+
+                    const logData = {
+                        requino: requisicionActual.requino,
+                        codusuario: usuarioActual.codusuario,
+                        accion: 'CAMBIO ESTADO',
+                        ip_address: usuarioActual.ip_address,
+                        user_agent: navigator.userAgent,
+                        codestado_anterior: estadoAnterior,
+                        codestado_nuevo: estadoNuevo,
+                        observaciones: observaciones,
+                        datos_modificados: datosModificados
+                    };
+
+                    // 3. GUARDAR EN LOCALSTORAGE
+                    agregarLog(logData);
+
+                    mostrarAlerta('✅ Estado cambiado y log guardado en localStorage');
+
+                    // Actualizar vista
+                    await cargarRequisicion();
+
+                    // Limpiar campos
+                    $('#estadoNuevo').val('');
+                    $('#observaciones').val('');
+                    $('#datosModificados').val('');
+
+                } else {
+                    mostrarAlerta('Error al cambiar estado', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error: ' + error.message, 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        async function rechazarRequisicion() {
+            if (!requisicionActual) {
+                mostrarAlerta('Debe seleccionar una requisición', 'warning');
+                return;
+            }
+
+            const observaciones = $('#observaciones').val();
+            if (!observaciones) {
+                mostrarAlerta('Debe ingresar el motivo del rechazo', 'warning');
+                return;
+            }
+
+            if (!confirm('¿Está seguro de rechazar esta requisición?')) {
+                return;
+            }
+
+            mostrarLoading(true);
+
+            try {
+                // Guardar el estado anterior
+                const estadoAnterior = requisicionActual.codestado;
+
+                // 1. ACTUALIZAR REQUISICIÓN
+                const datosRequisicion = {
+                    requino: requisicionActual.requino,
+                    fecha: requisicionActual.fecha,
+                    obs: requisicionActual.obs,
+                    codusuario: requisicionActual.codusuario,
+                    codestado: '04',
+                    codproveedor: requisicionActual.codproveedor,
+                    valor_total: requisicionActual.valor_total || 0
+                };
+
+                const response = await fetch(`${API_URL}/requisiciones/${requisicionActual.requino}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosRequisicion)
+                });
+
+                if (response.ok) {
+                    // 2. PREPARAR DATOS PARA EL LOG
+                    const datosModificados = {
+                        estado_anterior: {
+                            codigo: estadoAnterior,
+                            nombre: getNombreEstado(estadoAnterior)
+                        },
+                        estado_nuevo: {
+                            codigo: '04',
+                            nombre: 'Rechazada'
+                        },
+                        fecha_cambio: new Date().toISOString(),
+                        usuario: usuarioActual.codusuario,
+                        requisicion: requisicionActual.requino,
+                        motivo_rechazo: observaciones
+                    };
+
+                    const logData = {
+                        requino: requisicionActual.requino,
+                        codusuario: usuarioActual.codusuario,
+                        accion: 'RECHAZO',
+                        ip_address: usuarioActual.ip_address,
+                        user_agent: navigator.userAgent,
+                        codestado_anterior: estadoAnterior,
+                        codestado_nuevo: '04',
+                        observaciones: 'RECHAZADO: ' + observaciones,
+                        datos_modificados: datosModificados
+                    };
+
+                    // 3. GUARDAR EN LOCALSTORAGE
+                    agregarLog(logData);
+
+                    mostrarAlerta('✅ Requisición rechazada y log guardado en localStorage');
+
+                    // Recargar datos
+                    await cargarRequisicion();
+
+                    $('#estadoNuevo').val('');
+                    $('#observaciones').val('');
+                    $('#datosModificados').val('');
+
+                } else {
+                    mostrarAlerta('Error al rechazar requisición', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error: ' + error.message, 'danger');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function limpiarFormulario() {
+            $('#estadoNuevo').val('');
+            $('#observaciones').val('');
+            $('#datosModificados').val('');
+        }
+
+        function verJsonDetalle(jsonStr) {
+            try {
+                let jsonData;
+                if (typeof jsonStr === 'string') {
+                    const cleaned = jsonStr.replace(/\\/g, '');
+                    jsonData = JSON.parse(cleaned);
+                } else {
+                    jsonData = jsonStr;
+                }
+                $('#jsonDetalle').html(JSON.stringify(jsonData, null, 2));
+                $('#modalJson').modal('show');
+            } catch (e) {
+                $('#jsonDetalle').html(jsonStr);
+                $('#modalJson').modal('show');
+            }
+        }
+
+        function verHistorialCompleto() {
+            window.location.href = 'log_requisiciones.html';
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+
+        // Variables globales para logs
+        let logRequisicion = [];
+        let nextLogId = 1;
+
+        $(document).ready(function () {
+            cargarDatosUsuario();
+            cargarProveedores();
+            cargarUsuarios();
+            cargarRequisicionesParaSelect();
+
+            // Cargar logs guardados
+            cargarLogsDeLocalStorage();
+
+            $('.select2').select2({
+                placeholder: 'Seleccione una requisición...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const requino = urlParams.get('id');
+            if (requino) {
+                $('#requisicionSelect').val(requino).trigger('change');
+                cargarRequisicion();
+            }
+        });
+    </script>
+</body>
+</html>

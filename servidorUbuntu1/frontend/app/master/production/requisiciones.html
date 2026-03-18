@@ -150,6 +150,11 @@
                             <ul class="nav side-menu">
                                 <li><a href="index.html"><i class="fa fa-home"></i> Inicio</a></li>
                                 <li><a href="requisiciones.html" class="active"><i class="fa fa-shopping-cart"></i> Requisiciones</a></li>
+                                <li>
+                                    <a href="cambio_estado.html">
+                                        <i class="fa fa-exchange"></i> Cambio de Estado
+                                    </a>
+                                </li>
                                 <li><a href="#"><i class="fa fa-database"></i> Respaldos</a></li>
                                 <li><a href="#"><i class="fa fa-bar-chart-o"></i> Reportes</a></li>
                                 <li><a href="#"><i class="fa fa-cog"></i> Configuración</a></li>
@@ -406,8 +411,21 @@
             login: '',
             nombre: '',
             cargo: '',
-            coduuario: ''
+            coduusuario: ''  // Corregido: era coduuario, ahora coduusuario
         };
+
+        // Token CSRF (si tu API lo requiere)
+        function getCSRFToken() {
+            // Intentar obtener el token de las cookies
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken' || name === 'XSRF-TOKEN') {
+                    return value;
+                }
+            }
+            return '';
+        }
 
         // ============================================
         // FUNCIONES DE UTILIDAD
@@ -479,14 +497,14 @@
                         login: userData.login || userData.username || username,
                         nombre: userData.nombre || userData.username || username,
                         cargo: userData.cargo || '',
-                        coduuario: userData.coduuario || 'U001'
+                        coduusuario: userData.codusuario || userData.username || 'U001'
                     };
                 } else if (username) {
                     usuarioActual = {
                         login: username,
                         nombre: username,
                         cargo: '',
-                        coduuario: 'U001'
+                        coduusuario: 'U001'
                     };
                 }
             } catch (e) {
@@ -494,15 +512,15 @@
                     login: username || 'Usuario',
                     nombre: username || 'Usuario',
                     cargo: '',
-                    coduuario: 'U001'
+                    coduusuario: 'U001'
                 };
             }
 
             console.log('👤 Usuario actual:', usuarioActual);
             $('#nombreUsuario, #userNameDisplay').text(usuarioActual.nombre);
             $('#usuarioLogueado').text(`${usuarioActual.nombre} (${usuarioActual.login})`);
-            $('#codigoUsuario').text(usuarioActual.coduuario);
-            $('#codusuario').val(usuarioActual.coduuario);
+            $('#codigoUsuario').text(usuarioActual.coduusuario);
+            $('#codusuario').val(usuarioActual.coduusuario);
         }
 
         // ============================================
@@ -532,23 +550,28 @@
         }
 
         // ============================================
-        // FUNCIONES PARA CONSECUTIVO
+        // FUNCIONES PARA CONSECUTIVO (CORREGIDO)
         // ============================================
 
         async function obtenerUltimoRequisito() {
             try {
+                // Cambiar el ordenamiento para obtener el último número correctamente
                 const response = await fetch(`${API_URL}/requisiciones/?ordering=-requino`);
                 const data = await response.json();
 
                 if (Array.isArray(data) && data.length > 0) {
-                    let ultimoNumero = 0;
-                    if (data[0].requino && !isNaN(parseInt(data[0].requino))) {
-                        ultimoNumero = parseInt(data[0].requino);
-                    }
-                    if (ultimoNumero > 0) {
-                        return ultimoNumero + 1;
+                    // Filtrar solo números válidos y convertir a entero
+                    const numeros = data
+                        .map(item => parseInt(item.requino))
+                        .filter(num => !isNaN(num));
+
+                    if (numeros.length > 0) {
+                        const maxNumero = Math.max(...numeros);
+                        console.log('📊 Último número encontrado:', maxNumero);
+                        return maxNumero + 1;
                     }
                 }
+                console.log('📊 No hay requisiciones, empezando desde 1');
                 return 1;
             } catch (error) {
                 console.error('❌ Error obteniendo último requisito:', error);
@@ -557,7 +580,7 @@
         }
 
         // ============================================
-        // FUNCIONES CRUD - REQUISICIONES
+        // FUNCIONES CRUD - REQUISICIONES (CORREGIDAS)
         // ============================================
 
         async function cargarRequisiciones() {
@@ -566,7 +589,7 @@
                 const response = await fetch(`${API_URL}/requisiciones/`);
                 if (response.ok) {
                     requisiciones = await response.json();
-                    console.log('✅ Requisiciones cargadas:', requisiciones);
+                    console.log('✅ Requisiciones cargadas:', requisiciones.length);
                     renderizarTabla(requisiciones);
                 } else {
                     $('#tablaBody').html('<tr><td colspan="7" class="text-center text-danger">Error al cargar datos</td></tr>');
@@ -638,11 +661,19 @@
             $('#requisicionId').val('');
 
             mostrarLoading(true);
-            const nuevoNumero = await obtenerUltimoRequisito();
-            $('#requino').val(nuevoNumero.toString().padStart(6, '0'));
+            try {
+                const nuevoNumero = await obtenerUltimoRequisito();
+                // Formatear con 6 dígitos (ej: 000001, 000002, etc)
+                const numeroFormateado = nuevoNumero.toString().padStart(6, '0');
+                $('#requino').val(numeroFormateado);
+                console.log('📝 Nuevo número de requisición:', numeroFormateado);
+            } catch (error) {
+                console.error('Error obteniendo consecutivo:', error);
+                $('#requino').val('000001');
+            }
             mostrarLoading(false);
 
-            $('#codusuario').val(usuarioActual.coduuario);
+            $('#codusuario').val(usuarioActual.coduusuario);
             const hoy = new Date().toISOString().split('T')[0];
             $('#fecha').val(hoy);
             $('#codestado').val('01');
@@ -663,7 +694,7 @@
                     $('#codproveedor').val(req.codproveedor).trigger('change');
                     $('#obs').val(req.obs || '');
                     $('#codestado').val(req.codestado || '01');
-                    $('#codusuario').val(req.codusuario || usuarioActual.coduuario);
+                    $('#codusuario').val(req.codusuario || usuarioActual.coduusuario);
                     $('#modalRequisicion').modal('show');
                 } else {
                     mostrarAlerta('Error al cargar requisición', 'danger');
@@ -675,6 +706,29 @@
                 mostrarLoading(false);
             }
         }
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (CORREGIDA)
+        // ============================================
+
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (CORREGIDA)
+        // ============================================
+
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (CORREGIDA)
+        // ============================================
+
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (VERSIÓN DEBUG)
+        // ============================================
+
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (VERSIÓN CON MEJOR DEBUG)
+        // ============================================
+
+        // ============================================
+        // FUNCIÓN GUARDAR REQUISICIÓN (VERSIÓN CORREGIDA)
+        // ============================================
 
         async function guardarRequisicion() {
             if (!$('#formRequisicion')[0].checkValidity()) {
@@ -685,18 +739,22 @@
             const requino = $('#requino').val();
             const esNuevo = !$('#requisicionId').val();
 
-            // IMPORTANTE: Agregar valor_total: 0
+            // Convertir requino a número (quitar ceros a la izquierda)
+            const requinoNumero = parseInt(requino, 10);
+
             const datos = {
-                requino: requino,
-                fecha: $('#fecha').val(),
-                obs: $('#obs').val(),
-                codusuario: $('#codusuario').val(),
-                codestado: $('#codestado').val(),
-                codproveedor: $('#codproveedor').val(),
-                valor_total: 0  // ← Campo requerido por la API
+                requino: requinoNumero,  // Enviar como número, no como string
+                fecha: String($('#fecha').val()),
+                obs: $('#obs').val() ? String($('#obs').val()).trim() : '',
+                codusuario: String($('#codusuario').val()).trim(),
+                codestado: String($('#codestado').val()).trim(),
+                codproveedor: String($('#codproveedor').val()).trim(),
+                valor_total: 0.0
             };
 
-            console.log('📤 Datos a enviar:', datos);
+            console.log('🔍 Datos a enviar:', JSON.stringify(datos, null, 2));
+            console.log('🔍 Tipo de requino:', typeof datos.requino, 'valor:', datos.requino);
+
             mostrarLoading(true);
 
             try {
@@ -706,27 +764,29 @@
 
                 const response = await fetch(url, {
                     method: esNuevo ? 'POST' : 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(datos)
                 });
 
-                const responseData = await response.json();
-                console.log('📥 Respuesta:', responseData);
+                console.log('📥 Status:', response.status);
+
+                const responseText = await response.text();
 
                 if (response.ok) {
-                    mostrarAlerta(`Requisición ${esNuevo ? 'creada' : 'actualizada'} exitosamente`);
+                    console.log('✅ Requisición guardada');
+                    mostrarAlerta('✅ Requisición guardada exitosamente');
                     $('#modalRequisicion').modal('hide');
                     await cargarRequisiciones();
                 } else {
-                    let mensajeError = 'Error al guardar:\n';
-                    for (const [campo, errores] of Object.entries(responseData)) {
-                        mensajeError += `- ${campo}: ${errores.join(', ')}\n`;
-                    }
-                    mostrarAlerta(mensajeError, 'danger');
+                    console.error('❌ Error response:', responseText.substring(0, 500));
+                    mostrarAlerta('Error al guardar: ' + response.status, 'danger');
                 }
+
             } catch (error) {
                 console.error('❌ Error:', error);
-                mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+                mostrarAlerta('Error de conexión', 'danger');
             } finally {
                 mostrarLoading(false);
             }
@@ -741,15 +801,24 @@
             if (!requisicionAEliminar) return;
             mostrarLoading(true);
             try {
+                const headers = {};
+                const csrfToken = getCSRFToken();
+                if (csrfToken) {
+                    headers['X-CSRFToken'] = csrfToken;
+                }
+
                 const response = await fetch(`${API_URL}/requisiciones/${requisicionAEliminar}/`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: headers
                 });
+
                 if (response.ok) {
-                    mostrarAlerta('Requisición eliminada exitosamente');
+                    mostrarAlerta('✅ Requisición eliminada exitosamente');
                     $('#modalEliminar').modal('hide');
                     await cargarRequisiciones();
                 } else {
-                    mostrarAlerta('Error al eliminar', 'danger');
+                    const errorText = await response.text();
+                    mostrarAlerta('Error al eliminar: ' + errorText, 'danger');
                 }
             } catch (error) {
                 console.error('❌ Error:', error);

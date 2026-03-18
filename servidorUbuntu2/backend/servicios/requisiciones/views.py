@@ -31,7 +31,7 @@ class RequisicionViewSet(viewsets.ModelViewSet):
                 valor=det.get('valor', 0)
             )
 
-        # 🔥 LOG CREACIÓN
+        # LOG CREACIÓN
         LogRequisicion.objects.create(
             requisicion=requisicion,
             codusuario=requisicion.codusuario,
@@ -44,7 +44,7 @@ class RequisicionViewSet(viewsets.ModelViewSet):
             datos_modificados={}
         )
 
-        # 🔥 CORREO
+        # CORREO
         enviar_correo(
             destinatario="correo@gmail.com",
             asunto="Nueva requisición creada",
@@ -54,7 +54,7 @@ class RequisicionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    # 🔥 LOG CUANDO CAMBIA ESTADO
+    # LOG CUANDO CAMBIA ESTADO
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         estado_anterior = instance.codestado

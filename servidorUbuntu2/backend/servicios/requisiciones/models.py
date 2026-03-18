@@ -1,6 +1,8 @@
 # servicios/requisiciones/models.py
 
 from django.db import models
+from django.utils import timezone
+
 
 #requisición
 class Requisicion(models.Model):
@@ -58,8 +60,19 @@ class LogRequisicion(models.Model):
         db_column='requino'
     )
 
-    fecha = models.DateTimeField(auto_now_add=True)
-    accion = models.CharField(max_length=100)
+    codusuario = models.CharField(max_length=20)
+    accion = models.CharField(max_length=20)
+
+    fecha = models.DateTimeField(default=timezone.now)
+
+    ip_address = models.CharField(max_length=45, null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+
+    codestado_anterior = models.CharField(max_length=2, null=True, blank=True)
+    codestado_nuevo = models.CharField(max_length=2, null=True, blank=True)
+
+    observaciones = models.CharField(max_length=500, null=True, blank=True)
+    datos_modificados = models.JSONField(null=True, blank=True)
 
     class Meta:
         db_table = 'log_requisicion'
